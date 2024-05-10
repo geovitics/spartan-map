@@ -1,102 +1,115 @@
 <html>
+
 <head>
-      <!-- Include Leaflet library -->
-      <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
-      <!-- Include Windy API library -->
-      <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
-    <link rel="stylesheet" href="style.css" />
+  <!-- Include Leaflet library -->
+  <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+  <!-- Include Windy API library -->
+  <script src="https://api.windy.com/assets/map-forecast/libBoot.js"></script>
+  <link rel="stylesheet" href="style.css" />
 
 </head>
+
 <body>
-    <div id="weather-liveweathermap" class="weather-liveweathermap">
-        <div class="row">
-        </div>
-        <div class="container weather-table-box">
-            <div class="row">
-                <div class="col-md-12 align-items-center  liveweathermap">
-                    <div id="legend" data-ref="legend" class="tempf"  data-tooltip="Click to change units" data-overlay="temp" style="background: linear-gradient(to right, rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(150, 209, 216), rgb(129, 204, 197), rgb(103, 180, 186), rgb(95, 143, 197), rgb(80, 140, 62), rgb(121, 146, 28), rgb(171, 161, 14), rgb(223, 177, 6), rgb(243, 150, 6), rgb(236, 95, 21), rgb(190, 65, 18), rgb(138, 43, 10), rgb(138, 43, 10));"><span style="width:12.5%">°F</span><span style="width: 12.5%">-5</span><span style="width: 12.5%">15</span><span style="width: 12.5%">30</span><span style="width: 12.5%">50</span><span style="width: 12.5%">70</span><span style="width: 12.5%">85</span><span style="width: 12.5%">100</span></div>
-                    <div id="windy"></div>
-                </div>
-            </div>
-        </div>
+  <div id="weather-liveweathermap" class="weather-liveweathermap">
+    <div class="row">
     </div>
-    <script>
-        let isFahrenheit = false; // Variable to track the temperature unit
+    <div class="container weather-table-box">
+      <div class="row">
+        <div class="col-md-12 align-items-center  liveweathermap">
+          <div id="legend" data-ref="legend" class="tempf" data-tooltip="Click to change units" data-overlay="temp"
+            style="background: linear-gradient(to right, rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(149, 137, 211), rgb(150, 209, 216), rgb(129, 204, 197), rgb(103, 180, 186), rgb(95, 143, 197), rgb(80, 140, 62), rgb(121, 146, 28), rgb(171, 161, 14), rgb(223, 177, 6), rgb(243, 150, 6), rgb(236, 95, 21), rgb(190, 65, 18), rgb(138, 43, 10), rgb(138, 43, 10));">
+            <span style="width:12.5%">°F</span><span style="width: 12.5%">-5</span><span
+              style="width: 12.5%">15</span><span style="width: 12.5%">30</span><span
+              style="width: 12.5%">50</span><span style="width: 12.5%">70</span><span
+              style="width: 12.5%">85</span><span style="width: 12.5%">100</span></div>
+          <div id="windy"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let isFahrenheit = urlParams.get("temp");; // Variable to track the temperature unit
 
-function switchToFahrenheit() {
-  isFahrenheit = true;
-  refreshWeatherData();
-}
+    function switchToFahrenheit() {
+      isFahrenheit = true;
+      refreshWeatherData();
+    }
 
-function switchToCelsius() {
-  isFahrenheit = false;
-  refreshWeatherData();
-}
+    function switchToCelsius() {
+      isFahrenheit = false;
+      refreshWeatherData();
+    }
 
-function initializeWeatherMap(lat, lng) {
-  const options = {
-    key: '3ZYgZmZ1HSrsWLOZpN4R2Ug9R67eF7EQ', // Replace with your Windy API key
-    lat: 23.56,
-    lon: 78.56,
-    zoom: 8 // Set the initial zoom level (you can adjust this value as needed)
-  };
+    function initializeWeatherMap(lat, lng) {
+      const urlParams = new URLSearchParams(window.location.search);
 
-  // Initialize Windy map
-  windyInit(options, windyAPI => {
-    const { store } = windyAPI;
-    const overlays = ['temp'];
+      const options = {
+        key: '3ZYgZmZ1HSrsWLOZpN4R2Ug9R67eF7EQ', // Replace with your Windy API key
+        lat: 23.56,
+        lon: 78.56,
+        zoom: 8 // Set the initial zoom level (you can adjust this value as needed)
+      };
 
-    setInterval(() => {
-      store.set('overlay', 'temp');
-    }, 800);
+      // Initialize Windy map
+      windyInit(options, windyAPI => {
+        const { store } = windyAPI;
+        const overlays = ['temp'];
 
-    // Add a marker to the map
-    L.marker([lat, lng]).addTo(windyAPI.map);
-  });
+        setInterval(() => {
+          store.set('overlay', 'temp');
+        }, 800);
 
-  // Call temperatureUpdate function to initialize temperatures and legend
-  temperatureUpdate();
-}
-
-// Function to update temperature and legend
-function temperatureUpdate() {
-  const elements = document.querySelectorAll('#windy-map .labels-layer [data-id]');
-  elements.forEach(element => {
-    const dataIdToSelect = element.getAttribute('data-id');
-    const textAR = dataIdToSelect.split('/');
-    const latitude = 23.56;
-    const longitude = 78.56;
-
-    fetch("https://api.weatherapi.com/v1/current.json?key=3ZYgZmZ1HSrsWLOZpN4R2Ug9R67eF7EQ&q=" + latitude + "," + longitude + "&aqi=yes")
-      .then(response => response.json())
-      .then(data => {
-        console.log(data)
-        let temperature;
-        if (isFahrenheit) {
-          temperature = data.current.temp_f; // Convert to Fahrenheit
-        } else {
-          temperature = data.current.temp_c; // Temperature is already in Celsius
-        }
-        temperature = Math.round(temperature);
-        
-        element.setAttribute('data-temp', temperature + (isFahrenheit ? '°F' : '°C')); // Update temperature with unit
-      })
-      .catch(error => {
-        console.error("Error:", error);
+        // Add a marker to the map
+        L.marker([lat, lng]).addTo(windyAPI.map);
       });
-  });
 
-  // Update legend based on the selected temperature unit
-  const legend = document.getElementById('legend');
-  if (isFahrenheit) {
-    // Update legend for Fahrenheit
-    legend.innerHTML = '<span style="width:12.5%">°F</span><span style="width: 12.5%">-5</span><span style="width: 12.5%">15</span><span style="width: 12.5%">30</span><span style="width: 12.5%">50</span><span style="width: 12.5%">70</span><span style="width: 12.5%">85</span><span style="width: 12.5%">100</span>';
-  } else {
-    // Update legend for Celsius
-    legend.innerHTML = '<span style="width:12.5%">°C</span><span style="width: 12.5%">-20</span><span style="width: 12.5%">-10</span><span style="width: 12.5%">0</span><span style="width: 12.5%">10</span><span style="width: 12.5%">20</span><span style="width: 12.5%">30</span><span style="width: 12.5%">40</span>';
-  }
-}
-initializeWeatherMap(23.56, 78.56);  
-    </script>
+      // Call temperatureUpdate function to initialize temperatures and legend
+      temperatureUpdate();
+    }
+
+    // Function to update temperature and legend
+    function temperatureUpdate() {
+      const elements = document.querySelectorAll('#windy-map .labels-layer [data-id]');
+      elements.forEach(element => {
+        const dataIdToSelect = element.getAttribute('data-id');
+        const textAR = dataIdToSelect.split('/');
+        const latitude = urlParams.get("lat");
+        const longitude = urlParams.get("long");
+
+        fetch("https://api.weatherapi.com/v1/current.json?key=3ZYgZmZ1HSrsWLOZpN4R2Ug9R67eF7EQ&q=" + latitude + "," + longitude + "&aqi=yes")
+          .then(response => response.json())
+          .then(data => {
+            console.log(data)
+            let temperature;
+            if (isFahrenheit) {
+              temperature = data.current.temp_f; // Convert to Fahrenheit
+            } else {
+              temperature = data.current.temp_c; // Temperature is already in Celsius
+            }
+            temperature = Math.round(temperature);
+
+            element.setAttribute('data-temp', temperature + (isFahrenheit ? '°F' : '°C')); // Update temperature with unit
+          })
+          .catch(error => {
+            console.error("Error:", error);
+          });
+      });
+
+      // Update legend based on the selected temperature unit
+      const legend = document.getElementById('legend');
+      if (isFahrenheit) {
+        // Update legend for Fahrenheit
+        legend.innerHTML = '<span style="width:12.5%">°F</span><span style="width: 12.5%">-5</span><span style="width: 12.5%">15</span><span style="width: 12.5%">30</span><span style="width: 12.5%">50</span><span style="width: 12.5%">70</span><span style="width: 12.5%">85</span><span style="width: 12.5%">100</span>';
+      } else {
+        // Update legend for Celsius
+        legend.innerHTML = '<span style="width:12.5%">°C</span><span style="width: 12.5%">-20</span><span style="width: 12.5%">-10</span><span style="width: 12.5%">0</span><span style="width: 12.5%">10</span><span style="width: 12.5%">20</span><span style="width: 12.5%">30</span><span style="width: 12.5%">40</span>';
+      }
+    }
+    const lat = urlParams.get("lat")
+    const long = urlParams.get("long")
+    initializeWeatherMap(lat, long);  
+  </script>
 </body>
+
 </html>
